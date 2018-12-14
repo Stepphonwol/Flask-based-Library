@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Edit Book</h1>
+    {% from "includes/_formhelpers.html" import render_field %}
+    <form method="POST" action="">
+        <div class="form-group">
+            {{render_field(form.ISBN, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.book_name, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.press, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.publicating_date, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.author, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.abstract, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.num, clas_="form-control")}}
+        </div>
+        <p><input type="submit" class="btn btn-primary" value="Submit"></p>
+    </form>
+{% endblock %}

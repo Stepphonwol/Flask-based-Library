@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Book</h1>
+    <a class="btn btn-success" href="/add_book">Add a book</a>
+    <a class="btn btn-success" href="/search_book">Search books</a>
+    <table class="table table-striped">
+        <tr>
+            <th>book_id</th>
+            <th>ISBN</th>
+            <th>book_name</th>
+            <th>press</th>
+            <th>publicating_date</th>
+            <th>author</th>
+            <th>abstract</th>
+            <th>num</th>
+        </tr>
+        {% for book in books %}
+        <tr>
+            <td>{{book.book_id}}</td>
+            <td>{{book.ISBN}}</td>
+            <td>{{book.book_name}}</td>
+            <td>{{book.press}}</td>
+            <td>{{book.publicating_date}}</td>
+            <td>{{book.author}}</td>
+            <td>{{book.abstract}}</td>
+            <td>{{book.num}}</td>
+            <td><a href="edit_book/{{book.book_id}}" class="btn btn-default pullright">Edit</a></td>
+            <td>
+                <form action="{{url_for('delete_book', book_id=book.book_id)}}" method="post">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="DELETE" class="btn btn-danger">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Dashboard <small>Welcome {{session.reader_id}}</small></h1>
+    <a class="btn btn-success" href="/borrow_book">Borrow a book</a>
+    <a class="btn btn-success" href="/return_book">Return a book</a>
+{% endblock %}

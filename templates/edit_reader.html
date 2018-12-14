@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Edit Reader</h1>
+    {% from "includes/_formhelpers.html" import render_field %}
+    <form method="POST" action="">
+        <div class="form-group">
+            {{render_field(form.reader_id, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.readername, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.gender, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.department, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.user_grade, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.password, clas_="form-control")}}
+        </div>
+        <div class="form-group">
+            {{render_field(form.confirm, clas_="form-control")}}
+        </div>
+        <p><input type="submit" class="btn btn-primary" value="Submit"></p>
+    </form>
+{% endblock %}
