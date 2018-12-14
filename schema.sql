@@ -3,8 +3,8 @@ DROP TABLE IF EXISTS borrow;
 DROP TABLE IF EXISTS book;
 
 CREATE TABLE reader (
-  reader_id INTEGER PRIMARY KEY,
-  readername VARCHAR NOT NULL,
+  reader_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  reader_name VARCHAR NOT NULL,
   gender VARCHAR,
   department VARCHAR,
   user_grade INTEGER,

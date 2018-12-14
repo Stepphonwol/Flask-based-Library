@@ -5,21 +5,19 @@
     <a class="btn btn-success" href="/search_reader">Search readers</a>
     <table class="table table-striped">
         <tr>
-            <th>reader_id</th>
-            <th>readername</th>
-            <th>gender</th>
-            <th>department</th>
-            <th>user_grade</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Department</th>
+            <th>Grade</th>
         </tr>
         {% for reader in readers %}
         <tr>
             <td>{{reader.reader_id}}</td>
-            <td>{{reader.readername}}</td>
+            <td>{{reader.reader_name}}</td>
             <td>{{reader.gender}}</td>
             <td>{{reader.department}}</td>
             <td>{{reader.user_grade}}</td>
-            <td><a href="edit_reader/{{reader.reader_id}}" class="btn btn-default pullright">Edit</a></td>
-            <td><a href="#" class="btn btn-danger pullright">Delete</a></td>
         </tr>
         {% endfor %}
     </table>

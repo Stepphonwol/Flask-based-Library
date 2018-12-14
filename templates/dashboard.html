@@ -1,7 +1,30 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-    <h1>Dashboard <small>Welcome {{session.reader_id}}</small></h1>
+    <h1>Dashboard <small>Welcome {{session.reader_name}}</small></h1>
     <a class="btn btn-success" href="/borrow_book">Borrow a book</a>
     <a class="btn btn-success" href="/return_book">Return a book</a>
+    <table class="table table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Department</th>
+            <th>Grade</th>
+        </tr>
+        <tr>
+            <td>{{reader.reader_id}}</td>
+            <td>{{reader.reader_name}}</td>
+            <td>{{reader.gender}}</td>
+            <td>{{reader.department}}</td>
+            <td>{{reader.user_grade}}</td>
+            <td><a href="edit_reader/{{reader.reader_id}}" class="btn btn-default pullright">Edit</a></td>
+            <td>
+                <form action="{{url_for('delete_reader', reader_id=reader.reader_id)}}" method="post">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="DELETE" class="btn btn-danger">
+                </form>
+            </td>
+        </tr>
+    </table>
 {% endblock %}
