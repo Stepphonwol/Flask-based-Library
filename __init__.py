@@ -5,6 +5,7 @@ from flaskr.db import get_db
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators, IntegerField
 from passlib.hash import sha256_crypt
 from functools import wraps
+from datetime import datetime, timedelta
 
 
 def create_app(test_config=None):
@@ -153,7 +154,11 @@ def create_app(test_config=None):
         reader = db.execute(
             'SELECT * FROM reader WHERE reader_id = ?', (session['reader_id'],)
         ).fetchone()
-        return render_template('dashboard.html', reader=reader)
+        books = db.execute(
+            'SELECT book_id, borrow_date, return_date FROM reader NATURAL LEFT JOIN borrow WHERE reader_id = ? AND returned = ?',
+            (session['reader_id'], 0)
+        )
+        return render_template('dashboard.html', reader=reader, books=books)
 
 
     # Show information of all readers
@@ -323,14 +328,29 @@ def create_app(test_config=None):
     @is_logged_in
     def delete_reader(reader_id):
         db = get_db()
-        db.execute(
-            'DELETE FROM reader WHERE reader_id = ?', (reader_id,)
-        )
-        db.commit()
+        error = None
 
-        flash("Reader deleted!", 'success')
+        records = db.execute(
+            'SELECT * FROM borrow WHERE reader_id = ?', (reader_id,)
+        ).fetchall()
 
-        return redirect(url_for('dashboard'))
+        if records is not None:
+            for record in records:
+                if record['returned'] == 0:
+                    error = "You haven't returned %s" % record['book_id']
+
+        if error is None:
+            db.execute(
+                'DELETE FROM reader WHERE reader_id = ?', (reader_id,)
+            )
+            db.commit()
+
+            flash("Reader deleted!", 'success')
+        else:
+            flash(error, 'danger')
+            return redirect(url_for('book'))
+
+        return redirect(url_for('hello'))
 
 
     # Deleting a book
@@ -437,6 +457,88 @@ def create_app(test_config=None):
                 msg = "bug"
                 return render_template("reader.html", msg=msg)
         return render_template("search_reader.html")
+
+
+    # Borrow
+    @app.route('/borrow_book/<string:book_id>', methods=['GET', 'POST'])
+    @is_logged_in
+    def borrow_book(book_id):
+        db = get_db()
+        error = None
+        book = db.execute(
+            'SELECT * FROM book WHERE book_id = ?', (book_id,)
+        ).fetchone()
+        cur_num = book['num']
+
+        if cur_num <= 0:
+            error = "This book is not available!!!"
+
+        records = db.execute(
+            'SELECT * FROM borrow WHERE reader_id = ? AND book_id = ?', (session['reader_id'], book_id)
+        ).fetchall()
+
+        # To see if this book is borrowed by this reader
+        for record in records:
+            if record['returned'] == 0:
+                error = "You have borrowed this book!!!"
+
+        if error is None:
+            app.logger.info(cur_num)
+            db.execute(
+                'UPDATE book SET num = ? WHERE book_id = ?', (cur_num - 1, book_id)
+            )
+            # Acquire time
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            end = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d %H:%M:%S')
+            db.execute(
+                'INSERT INTO borrow (borrow_date, book_id, reader_id, return_date, returned) VALUES(?, ?, ?, ?, ?)', (now, book_id, session['reader_id'], end, 0)
+            )
+            db.commit()
+            flash("Successfully borrowed!!!", 'success')
+        else:
+            flash(error, 'danger')
+        return redirect(url_for('book'))
+
+
+    # Return
+    @app.route('/return_book/<string:book_id>', methods=['GET', 'POST'])
+    @is_logged_in
+    def return_book(book_id):
+        db = get_db()
+        error = None
+        exact_id = 0
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        records = db.execute(
+            'SELECT * FROM borrow WHERE book_id = ? AND reader_id = ?', (book_id, session['reader_id'])
+        ).fetchall()
+
+        if records is None:
+            error = "You didn't borrow this book at all!!!"
+        else:
+            sign = 0
+            for record in records:
+                if record['returned'] == 0:
+                    exact_id = record['record_id']
+                    break
+                else:
+                    sign = sign + 1
+            if sign == len(records):
+                error = "You didn't borrow this book!!!"
+
+
+        if error is None:
+            db.execute(
+                'UPDATE book SET num = num + 1 WHERE book_id = ?', (book_id,)
+            )
+            db.execute(
+                'UPDATE borrow SET returned = ? WHERE record_id = ?', (1, exact_id)
+            )
+            db.commit()
+            flash("You have returned this book successfully!!!", 'success')
+        else:
+            flash(error, 'danger')
+        return redirect(url_for('book'))
 
 
     from . import db

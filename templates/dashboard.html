@@ -2,8 +2,6 @@
 
 {% block body %}
     <h1>Dashboard <small>Welcome {{session.reader_name}}</small></h1>
-    <a class="btn btn-success" href="/borrow_book">Borrow a book</a>
-    <a class="btn btn-success" href="/return_book">Return a book</a>
     <table class="table table-striped">
         <tr>
             <th>ID</th>
@@ -26,5 +24,23 @@
                 </form>
             </td>
         </tr>
+    </table>
+    <h1>Book List</h1>
+    <table class="table table-striped">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Borrowing Date</th>
+            <th>Returing Date</th>
+        </tr>
+        {% for book in books %}
+        <tr>
+            <td>{{book.book_id}}</td>
+            <td>{{book.book_name}}</td>
+            <td>{{book.borrow_date}}</td>
+            <td>{{book.return_date}}</td>
+            <td><a href="return_book/{{book.book_id}}" class="btn btn-danger pullright">Return</a></td>
+        </tr>
+        {% endfor %}
     </table>
 {% endblock %}

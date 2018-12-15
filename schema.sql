@@ -12,12 +12,12 @@ CREATE TABLE reader (
 );
 
 CREATE TABLE borrow(
-    record_id INTEGER PRIMARY KEY,
-    borrow_date INTEGER NOT NULL,
+    record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    borrow_date VARCHAR NOT NULL,
     book_id INTEGER,
     reader_id INTEGER,
     return_date INTEGER,
-    returned BOOL
+    returned INTEGER
 );
 
 CREATE TABLE book(
