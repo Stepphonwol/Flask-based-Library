@@ -348,6 +348,97 @@ def create_app(test_config=None):
         return redirect(url_for('book'))
 
 
+    # Search books
+    @app.route('/search_book', methods=['GET', 'POST'])
+    @is_logged_in
+    def search_book():
+        if request.method == 'POST':
+            book_id = request.form['book_id']
+            ISBN = request.form['ISBN']
+            book_name = request.form['book_name']
+            press = request.form['press']
+            publicating_date = request.form['publicating_date']
+            author = request.form['author']
+            abstract = request.form['abstract']
+            num = request.form['num']
+
+            db = get_db()
+            error = None
+
+            if (book_id and ISBN and book_name and press and publicating_date and author and abstract and num) is None:
+                error = "All empty!!!No!!!"
+
+            sentence = "SELECT * FROM book WHERE"
+            if error is None:
+                if book_id:
+                    sentence += " book_id = '%s'" % book_id + " AND"
+                if ISBN:
+                    sentence += " ISBN = '%s'" % ISBN + " AND"
+                if book_name:
+                    sentence += " book_name = '%s'" % book_name + " AND"
+                if press:
+                    sentence += " press = '%s'" % press + " AND"
+                if publicating_date:
+                    sentence += " publicating_date = '%s'" % publicating_date + " AND"
+                if author:
+                    sentence += " author = '%s'" % author + " AND"
+                if abstract:
+                    sentence += " abstract = '%s'" % abstract + " AND"
+                if num:
+                    sentence += " num = '%s'" % num
+                app.logger.info(sentence)
+                app.logger.info(sentence[:-4])
+                books = db.execute(
+                    sentence[:-4]
+                ).fetchall()
+                return render_template('book.html', books=books)
+            else:
+                msg = "bug"
+                return render_template("book.html", msg=msg)
+        return render_template("search_book.html")
+
+
+    # Search readers
+    @app.route('/search_reader', methods=['GET', 'POST'])
+    @is_logged_in
+    def search_reader():
+        if request.method == 'POST':
+            reader_id = request.form['reader_id']
+            reader_name = request.form['reader_name']
+            gender = request.form['gender']
+            department = request.form['department']
+            user_grade = request.form['user_grade']
+
+            db = get_db()
+            error = None
+
+            if (reader_id and reader_name and gender and department and user_grade) is None:
+                error = "All empty!!!No!!!"
+
+            sentence = "SELECT * FROM reader WHERE"
+            if error is None:
+                if reader_id:
+                    sentence += " reader_id = '%s'" % reader_id + " AND"
+                if reader_name:
+                    sentence += " reader_name = '%s'" % reader_name + " AND"
+                if gender:
+                    sentence += " gender = '%s'" % gender + " AND"
+                if department:
+                    sentence += " department = '%s'" % department + " AND"
+                if user_grade:
+                    sentence += " publicating_date = '%s'" % user_grade + " AND"
+                app.logger.info(sentence)
+                app.logger.info(sentence[:-4])
+                readers = db.execute(
+                    sentence[:-4]
+                ).fetchall()
+                return render_template('reader.html', readers=readers)
+            else:
+                msg = "bug"
+                return render_template("reader.html", msg=msg)
+        return render_template("search_reader.html")
+
+
     from . import db
     db.init_app(app)
 

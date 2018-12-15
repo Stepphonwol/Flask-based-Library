@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+    <h1>Search Readers</h1>
+    <form action="" method="POST">
+        <div class="form-group">
+            <label>ID</label>
+            <input type="text" name="reader_id" class="form-control" value={{request.form.reader_id}}>
+        </div>
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" name="reader_name" class="form-control" value={{request.form.reader_name}}>
+        </div>
+        <div class="form-group">
+            <label>Gender</label>
+            <input type="text" name="gender" class="form-control" value={{request.form.gender}}>
+        </div>
+        <div class="form-group">
+            <label>Department</label>
+            <input type="text" name="department" class="form-control" value={{request.form.department}}>
+        </div>
+        <div class="form-group">
+            <label>Grade</label>
+            <input type="text" name="user_grade" class="form-control" value="{{request.form.user_grade}}">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
