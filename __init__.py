@@ -334,6 +334,7 @@ def create_app(test_config=None):
             'SELECT * FROM borrow WHERE reader_id = ?', (reader_id,)
         ).fetchall()
 
+        # Check if this reader has some book that he hasn't returned
         if records is not None:
             for record in records:
                 if record['returned'] == 0:
@@ -358,13 +359,26 @@ def create_app(test_config=None):
     @is_logged_in
     def delete_book(book_id):
         db = get_db()
-        db.execute(
-            'DELETE FROM book WHERE book_id = ?', (book_id,)
-        )
-        db.commit()
+        error = None
 
-        flash("Book deleted!", 'success')
+        borrowed = db.execute(
+            'SELECT * FROM borrow WHERE book_id = ?', (book_id,)
+        ).fetchall()
 
+        # Check whether this book has been borrowed
+        for borrow in borrowed:
+            if borrow['returned'] == 0:
+                error = "%s has borrowed this book!!!" % borrow['reader_id']
+
+        if error is None:
+            db.execute(
+                'DELETE FROM book WHERE book_id = ?', (book_id,)
+            )
+            db.commit()
+
+            flash("Book deleted!", 'success')
+        else:
+            flash(error, 'danger')
         return redirect(url_for('book'))
 
 
@@ -469,6 +483,7 @@ def create_app(test_config=None):
             'SELECT * FROM book WHERE book_id = ?', (book_id,)
         ).fetchone()
         cur_num = book['num']
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         if cur_num <= 0:
             error = "This book is not available!!!"
@@ -481,6 +496,15 @@ def create_app(test_config=None):
         for record in records:
             if record['returned'] == 0:
                 error = "You have borrowed this book!!!"
+
+        # Check if this reader failed to return some book on due date
+        borrowed_books = db.execute(
+            'SELECT * FROM reader NATURAL LEFT JOIN borrow WHERE reader_id = ?', (session['reader_id'],)
+        ).fetchall()
+
+        for book in borrowed_books:
+            if book['returned'] == 0 and now > book['return_date']:
+                error = "You haven't returned %s on due date!!!" % book['book_id']
 
         if error is None:
             app.logger.info(cur_num)
@@ -513,6 +537,7 @@ def create_app(test_config=None):
             'SELECT * FROM borrow WHERE book_id = ? AND reader_id = ?', (book_id, session['reader_id'])
         ).fetchall()
 
+        # Check if this reader has borrowed this book
         if records is None:
             error = "You didn't borrow this book at all!!!"
         else:
@@ -526,6 +551,11 @@ def create_app(test_config=None):
             if sign == len(records):
                 error = "You didn't borrow this book!!!"
 
+        # Check if this book would be returned on due date
+        for record in records:
+            if record['returned'] == 0 and now > record['return_date']:
+                msg = "You should return this book on %s but it's %s now!!!" % (record['return_date'], now)
+                flash(msg, 'danger')
 
         if error is None:
             db.execute(
@@ -539,6 +569,17 @@ def create_app(test_config=None):
         else:
             flash(error, 'danger')
         return redirect(url_for('book'))
+
+
+    # Search Unfaithful Readers
+    @app.route('/search_unfaith')
+    def search_unfaith():
+        db = get_db()
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        unfaithful_readers = db.execute(
+            'SELECT reader_id, reader_name, gender, department, user_grade FROM reader NATURAL LEFT JOIN borrow WHERE returned = 0 AND return_date < ?', (now,)
+        ).fetchall()
+        return render_template('reader.html', readers=unfaithful_readers)
 
 
     from . import db
