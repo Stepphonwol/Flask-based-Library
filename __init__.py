@@ -75,6 +75,12 @@ def create_app(test_config=None):
             if (reader_name or password) is None:
                 error = 'Invalid!!!'
 
+            # Check whether it has repeated
+            if db.execute(
+                'SELECT * FROM reader WHERE reader_name = ? AND password = ?', (reader_name, password)
+            ).fetchall() is not None:
+                error = 'Repeated user!!!'
+
             if error is None:
                 db.execute(
                     'INSERT INTO reader (reader_name, gender, department, user_grade, password) VALUES(?, ?, ?, ?, ?)',
@@ -84,7 +90,7 @@ def create_app(test_config=None):
                 flash("Successfully registered!!", 'success')
                 return redirect(url_for('login'))
             else:
-                flash(error, 'failure')
+                flash(error, 'danger')
                 return redirect(url_for('register'))
         return render_template('register.html', form=form)
 
@@ -344,6 +350,7 @@ def create_app(test_config=None):
             db.execute(
                 'DELETE FROM reader WHERE reader_id = ?', (reader_id,)
             )
+            session.clear()
             db.commit()
 
             flash("Reader deleted!", 'success')
@@ -485,11 +492,12 @@ def create_app(test_config=None):
         cur_num = book['num']
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+        # Check whether there are enough books
         if cur_num <= 0:
             error = "This book is not available!!!"
 
         records = db.execute(
-            'SELECT * FROM borrow WHERE reader_id = ? AND book_id = ?', (session['reader_id'], book_id)
+            'SELECT * FROM borrow WHERE reader_id = ? AND book_id = ?', (session['reader_id'], book_id,)
         ).fetchall()
 
         # To see if this book is borrowed by this reader
@@ -513,7 +521,7 @@ def create_app(test_config=None):
             )
             # Acquire time
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            end = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d %H:%M:%S')
+            end = (datetime.now() + timedelta(seconds=10)).strftime('%Y-%m-%d %H:%M:%S')
             db.execute(
                 'INSERT INTO borrow (borrow_date, book_id, reader_id, return_date, returned) VALUES(?, ?, ?, ?, ?)', (now, book_id, session['reader_id'], end, 0)
             )
